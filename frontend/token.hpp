@@ -1,18 +1,9 @@
 #pragma once
 
 #include "string"
+#include "lexer_consts.hpp"
 
 using namespace std;
-
-enum TOKEN_TYPE{
-    KEYWORD = 1,
-    IDENTITY,
-    OPERATOR,
-    NUMBER,
-    STRING,
-    END,
-    UNKNOWN,
-};
 
 class token
 {

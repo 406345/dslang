@@ -1,7 +1,13 @@
 
+# DEMO
+    a=111abc
+    bbbb111
+
+
+    t = "asdfjlsjdlfsdf"
 fun fibonacci(count)
     if     count
-     <=
+     <= #DEMO
         2      return 
         1;
         
@@ -13,14 +19,20 @@ fun fibonacci(count)
               2);
 end
 
+fun add(x, y)
+    return x+y
+end
+
 fun 
 
 main()
+    t=0
+    for x in 100
+        t+=add(x,t)
+    end
     fibonacci(
         
         10 
-    
-    
     
        )
 end

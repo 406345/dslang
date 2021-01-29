@@ -1,25 +1,34 @@
 #include "stdio.h"
 #include "scanner.hpp"
 
-int main(int argc, char const *argv[])
+void test(const string &source)
 {
     scanner scanner;
-    
-    auto fp = fopen("./sample.dlang", "rb");
-    fseek(fp,0,SEEK_END);
-    auto size = ftell(fp);
-    fseek(fp,0,SEEK_SET);
-
-    char* buffer =new char[size];
-    fread(buffer,1,size,fp);
-    string source = string(buffer,size);
-
     auto ret = scanner.scan(source);
+    printf("===============================\n");
 
-    for(auto r: ret){
-        printf("[%s] type=%d line=%d pos=%d\n", r.symbol.data(), r.type , r.line, r.position);
+    for (auto r : ret)
+    {
+        printf("[%s] is %s @ %d:%d\n", r.symbol.data(), TOKEN_TYPE_NAME[r.type].data(), r.line, r.position);
     }
-    /* code */
+
+}
+int main(int argc, char const *argv[])
+{
+
+    auto fp = fopen("./sample.dlang", "rb");
+    fseek(fp, 0, SEEK_END);
+    auto size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    char *buffer = new char[size];
+    fread(buffer, 1, size, fp);
+    string source = string(buffer, size);
+
+    test(source);
+    test("\"abc;");
+    test("\"abc;\"");
+    test("fun test(a,b,c,d) test=a; c=b+c+d;end");
+ 
     return 0;
-    
 }

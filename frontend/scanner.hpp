@@ -2,7 +2,7 @@
 #include "string"
 #include "vector"
 #include "token.hpp"
-#include "consts_helper.hpp"
+#include "lexer_consts_helper.hpp"
 
 using namespace std;
 
@@ -16,27 +16,67 @@ private:
         SCAN_STATE_WORD,
         SCAN_STATE_OPERATE,
         SCAN_STATE_STRING,
-
+        SCAN_STATE_DESCRIPTION,
     };
 
-public:
-    scanner(){
+    int index = 0;
+    int pos = 1;
+    int line = 1;
+    int source_size = 0;
+    string source;
 
-    };
-
-    vector<token> scan(const string &source_code)
+    void next()
     {
-        vector<token> ret;
-        int index = 0;
-        int source_size = source_code.size();
-        int line = 0;
-        int pos = 0;
+        ++index;
+        ++pos;
+        
+    };
+
+    char get_char()
+    {
+        if (this->is_end())
+            return 0;
+
+        return source[this->index];
+    };
+
+    void back()
+    {
+        --index;
+        --pos;
+    };
+
+    void next_line()
+    {
+        ++line;
+        ++index;
+        pos = 1;
+    };
+
+    void reset(){
+        line = 1;
+        index = 0;
+        pos = 1;
+    };
+
+    inline bool is_source_end(){
+        return this->index >= (this->source_size-1);
+    };
+
+
+    inline bool is_end(){
+        return this->index >= (this->source_size);
+    };
+
+    vector<token> scan_source(){
+        vector<token> ret; 
         SCAN_STATE state = SCAN_STATE_NONE;
         int word_start = 0;
+        int last_token_id = 0;
 
-        while (index < source_size)
+        do
         {
-            char cur_chr = source_code[index];
+            char cur_chr = get_char();
 
             switch (state)
             {
@@ -44,49 +84,56 @@ public:
             {
                 if (cur_chr == '\n')
                 {
-                    pos = 0;
-                    ++line;
-                    ++index;
+                    pos = 1;
+                    this->next_line();
                 }
-                else if (cur_chr == ' ' || cur_chr == '\t'  || cur_chr == '\r')
+                else if (cur_chr == ' ' || cur_chr == '\t' || cur_chr == '\r')
                 {
-                    ++pos;
-                    ++index;
+                    this->next();
+                    continue;
                 }
-                else if (is_char_number(cur_chr))
+                else if (cur_chr == '\"')
                 {
                     word_start = index;
-                    state = SCAN_STATE_NUMBER;
+                    state = SCAN_STATE_STRING;
+
+                    token t;
+                    t.symbol = string(this->source.data() + word_start, 1);
+                    t.line = line;
+                    t.position = pos;
+                    t.type = TOKEN_TYPE::OPERATOR_SYM_STR;
+                    ret.push_back(std::move(t));
+
+                    this->next();
+                    continue;
                 }
+                else if (cur_chr == '#')
+                {
+                    state = SCAN_STATE_DESCRIPTION;
+                    this->next();
+                    continue;
+                } 
                 else if (is_char_alphabet(cur_chr))
                 {
                     word_start = index;
                     state = SCAN_STATE_WORD;
+                    continue;
                 }
-                else if (is_char_end(cur_chr))
+                else if (is_char_symbol(cur_chr))
                 {
-                    token t;
-                    t.symbol = string(source_code.data() + index, 1);
-                    t.line = line;
-                    t.position = pos - index + word_start;
-                    t.type = TOKEN_TYPE::END;
-                    ret.push_back(std::move(t));
-                    ++index;
-                    ++pos;
-                }  
-                else if( is_char_symbol(cur_chr)){
                     word_start = index;
                     state = SCAN_STATE_OPERATE;
+                    continue;
                 }
-                else {
+                else
+                {
                     token t;
-                    t.symbol = string(source_code.data() + index, 1);
+                    t.symbol = string(this->source.data() + index, 1);
                     t.line = line;
                     t.position = pos - index + word_start;
                     t.type = TOKEN_TYPE::UNKNOWN;
                     ret.push_back(std::move(t));
-                    ++index;
-                    ++pos;
+                    this->next();
                 }
             }
             break;
@@ -94,16 +141,16 @@ public:
             {
                 if (is_char_number(cur_chr) || cur_chr == '.')
                 {
-                    ++index;
-                    ++pos;
+                    this->next();
+                    continue;
                 }
                 else
                 {
                     token t;
-                    t.symbol = string(source_code.data() + word_start, index - word_start);
+                    t.symbol = string(this->source.data() + word_start, index - word_start);
                     t.line = line;
                     t.position = pos - index + word_start;
-                    t.type = TOKEN_TYPE::NUMBER;
+                    t.type = TOKEN_TYPE::NUMBER_INT;
                     ret.push_back(std::move(t));
 
                     state = SCAN_STATE_NONE;
@@ -114,52 +161,118 @@ public:
             {
                 if (is_char_alphabet(cur_chr))
                 {
-                    ++index;
-                    ++pos;
+                    this->next();
+                    continue;
                 }
                 else
                 {
                     token t;
-                    t.symbol = string(source_code.data() + word_start, index - word_start);
+                    t.symbol = string(this->source.data() + word_start, index - word_start);
                     t.line = line;
                     t.position = pos - index + word_start;
 
-                    if( is_keyword(t.symbol)){
-                        t.type = TOKEN_TYPE::KEYWORD;
+                    int flag = is_keyword(t.symbol);
+                    if (flag>=0)
+                    {
+                        t.type = (TOKEN_TYPE)flag;
                     }
-                    else {
+                    else if (is_number(t.symbol))
+                    {
+                        t.type = TOKEN_TYPE::NUMBER_INT;
+                    }
+                    else
+                    {
                         t.type = TOKEN_TYPE::IDENTITY;
                     }
-                    
+
                     ret.push_back(std::move(t));
 
                     state = SCAN_STATE_NONE;
                 }
             }
             break;
-            case SCAN_STATE_OPERATE:{
-                if (is_char_symbol(cur_chr))
+            case SCAN_STATE_OPERATE:
+            {
+                auto tmp = string(this->source.data() + word_start, index - word_start+1);
+                auto opt_id = is_opt(tmp);
+
+                if (opt_id>=0)
                 {
-                    ++index;
-                    ++pos;
+                    this->next();
+                    last_token_id = opt_id;
+                    continue;
                 }
                 else
                 {
                     token t;
-                    t.symbol = string(source_code.data() + word_start, index - word_start);
+                    t.symbol = string(this->source.data() + word_start, index - word_start);
                     t.line = line;
                     t.position = pos - index + word_start;
-                    t.type = TOKEN_TYPE::OPERATOR;
+                    t.type = (TOKEN_TYPE)last_token_id;
                     ret.push_back(std::move(t));
 
                     state = SCAN_STATE_NONE;
                 }
-            }break;
+            }
+            break;
+            case SCAN_STATE_STRING:
+            {
+                if (cur_chr == '\"' || this->is_source_end())
+                {
+                    token t;
+                    t.symbol = string(this->source.data() + word_start + 1, index - word_start-1);
+                    t.line = line;
+                    t.position = pos - index + word_start;
+                    t.type = TOKEN_TYPE::STRING;
+                    ret.push_back(std::move(t));
+
+                    if(cur_chr == '\"'){
+                        token t;
+                        t.symbol = "\"";
+                        t.line = line;
+                        t.position = pos;
+                        t.type = TOKEN_TYPE::OPERATOR_SYM_STR;
+                        ret.push_back(std::move(t));
+                    }
+
+                    state = SCAN_STATE_NONE;
+                }
+
+                
+                this->next();
+            }
+            break;
+            case SCAN_STATE_DESCRIPTION:
+            {
+                if (cur_chr == '\n')
+                {
+                    state = SCAN_STATE_NONE;
+                }
+                else
+                {
+                    this->next();
+                }
+            }
+            break;
             default:
+                next();
                 break;
             }
-        }
+        }while (!this->is_end());
 
+        return std::move(ret);
+    };
+public:
+    scanner(){
+
+    };
+
+    vector<token> scan(const string &source_code)
+    {
+        this->reset();
+        this->source = source_code + " ";
+        this->source_size = this->source.size();
+        auto ret = this->scan_source();
         return std::move(ret);
     };
 };
