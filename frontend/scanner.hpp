@@ -270,6 +270,7 @@ public:
     vector<token> scan(const string &source_code)
     {
         this->reset();
+        // add " " to protect overstep the size of source code
         this->source = source_code + " ";
         this->source_size = this->source.size();
         auto ret = this->scan_source();
