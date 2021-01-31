@@ -15,7 +15,7 @@ using namespace std;
     [else]
     end
 */
-class if_statement : statement
+class if_statement : public statement
 {
 private:
     /* data */

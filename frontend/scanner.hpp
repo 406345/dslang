@@ -3,6 +3,7 @@
 #include "vector"
 #include "token.hpp"
 #include "lexer_consts_helper.hpp"
+#include "memory"
 
 using namespace std;
 
@@ -29,7 +30,6 @@ private:
     {
         ++index;
         ++pos;
-        
     };
 
     char get_char()
@@ -53,23 +53,26 @@ private:
         pos = 1;
     };
 
-    void reset(){
+    void reset()
+    {
         line = 1;
         index = 0;
         pos = 1;
     };
 
-    inline bool is_source_end(){
-        return this->index >= (this->source_size-1);
+    inline bool is_source_end()
+    {
+        return this->index >= (this->source_size - 1);
     };
 
-
-    inline bool is_end(){
+    inline bool is_end()
+    {
         return this->index >= (this->source_size);
     };
 
-    vector<token> scan_source(){
-        vector<token> ret; 
+    vector<shared_ptr<token>> scan_source()
+    {
+        vector<shared_ptr<token>> ret;
         SCAN_STATE state = SCAN_STATE_NONE;
         int word_start = 0;
         int last_token_id = 0;
@@ -97,11 +100,11 @@ private:
                     word_start = index;
                     state = SCAN_STATE_STRING;
 
-                    token t;
-                    t.symbol = string(this->source.data() + word_start, 1);
-                    t.line = line;
-                    t.position = pos;
-                    t.type = TOKEN_TYPE::OPERATOR_SYM_STR;
+                    auto t = make_shared<token>();
+                    t->symbol = string(this->source.data() + word_start, 1);
+                    t->line = line;
+                    t->position = pos;
+                    t->type = TOKEN_TYPE::OPERATOR_SYM_STR;
                     ret.push_back(std::move(t));
 
                     this->next();
@@ -112,7 +115,7 @@ private:
                     state = SCAN_STATE_DESCRIPTION;
                     this->next();
                     continue;
-                } 
+                }
                 else if (is_char_alphabet(cur_chr))
                 {
                     word_start = index;
@@ -127,11 +130,12 @@ private:
                 }
                 else
                 {
-                    token t;
-                    t.symbol = string(this->source.data() + index, 1);
-                    t.line = line;
-                    t.position = pos - index + word_start;
-                    t.type = TOKEN_TYPE::UNKNOWN;
+
+                    auto t = make_shared<token>();
+                    t->symbol = string(this->source.data() + index, 1);
+                    t->line = line;
+                    t->position = pos - index + word_start;
+                    t->type = TOKEN_TYPE::UNKNOWN;
                     ret.push_back(std::move(t));
                     this->next();
                 }
@@ -146,11 +150,11 @@ private:
                 }
                 else
                 {
-                    token t;
-                    t.symbol = string(this->source.data() + word_start, index - word_start);
-                    t.line = line;
-                    t.position = pos - index + word_start;
-                    t.type = TOKEN_TYPE::NUMBER_INT;
+                    auto t = make_shared<token>();
+                    t->symbol = string(this->source.data() + word_start, index - word_start);
+                    t->line = line;
+                    t->position = pos - index + word_start;
+                    t->type = TOKEN_TYPE::NUMBER_INT;
                     ret.push_back(std::move(t));
 
                     state = SCAN_STATE_NONE;
@@ -166,23 +170,23 @@ private:
                 }
                 else
                 {
-                    token t;
-                    t.symbol = string(this->source.data() + word_start, index - word_start);
-                    t.line = line;
-                    t.position = pos - index + word_start;
+                    auto t = make_shared<token>();
+                    t->symbol = string(this->source.data() + word_start, index - word_start);
+                    t->line = line;
+                    t->position = pos - index + word_start;
 
-                    int flag = is_keyword(t.symbol);
-                    if (flag>=0)
+                    int flag = is_keyword(t->symbol);
+                    if (flag >= 0)
                     {
-                        t.type = (TOKEN_TYPE)flag;
+                        t->type = (TOKEN_TYPE)flag;
                     }
-                    else if (is_number(t.symbol))
+                    else if (is_number(t->symbol))
                     {
-                        t.type = TOKEN_TYPE::NUMBER_INT;
+                        t->type = TOKEN_TYPE::NUMBER_INT;
                     }
                     else
                     {
-                        t.type = TOKEN_TYPE::IDENTITY;
+                        t->type = TOKEN_TYPE::IDENTITY;
                     }
 
                     ret.push_back(std::move(t));
@@ -193,10 +197,10 @@ private:
             break;
             case SCAN_STATE_OPERATE:
             {
-                auto tmp = string(this->source.data() + word_start, index - word_start+1);
+                auto tmp = string(this->source.data() + word_start, index - word_start + 1);
                 auto opt_id = is_opt(tmp);
 
-                if (opt_id>=0)
+                if (opt_id >= 0)
                 {
                     this->next();
                     last_token_id = opt_id;
@@ -204,11 +208,12 @@ private:
                 }
                 else
                 {
-                    token t;
-                    t.symbol = string(this->source.data() + word_start, index - word_start);
-                    t.line = line;
-                    t.position = pos - index + word_start;
-                    t.type = (TOKEN_TYPE)last_token_id;
+                    auto t = make_shared<token>();
+
+                    t->symbol = string(this->source.data() + word_start, index - word_start);
+                    t->line = line;
+                    t->position = pos - index + word_start;
+                    t->type = (TOKEN_TYPE)last_token_id;
                     ret.push_back(std::move(t));
 
                     state = SCAN_STATE_NONE;
@@ -219,26 +224,26 @@ private:
             {
                 if (cur_chr == '\"' || this->is_source_end())
                 {
-                    token t;
-                    t.symbol = string(this->source.data() + word_start + 1, index - word_start-1);
-                    t.line = line;
-                    t.position = pos - index + word_start;
-                    t.type = TOKEN_TYPE::STRING;
+                    auto t = make_shared<token>();
+                    t->symbol = string(this->source.data() + word_start + 1, index - word_start - 1);
+                    t->line = line;
+                    t->position = pos - index + word_start;
+                    t->type = TOKEN_TYPE::STRING;
                     ret.push_back(std::move(t));
 
-                    if(cur_chr == '\"'){
-                        token t;
-                        t.symbol = "\"";
-                        t.line = line;
-                        t.position = pos;
-                        t.type = TOKEN_TYPE::OPERATOR_SYM_STR;
+                    if (cur_chr == '\"')
+                    {
+                        auto t = make_shared<token>();
+                        t->symbol = "\"";
+                        t->line = line;
+                        t->position = pos;
+                        t->type = TOKEN_TYPE::OPERATOR_SYM_STR;
                         ret.push_back(std::move(t));
                     }
 
                     state = SCAN_STATE_NONE;
                 }
 
-                
                 this->next();
             }
             break;
@@ -258,16 +263,17 @@ private:
                 next();
                 break;
             }
-        }while (!this->is_end());
+        } while (!this->is_end());
 
         return std::move(ret);
     };
+
 public:
     scanner(){
 
     };
 
-    vector<token> scan(const string &source_code)
+    vector<shared_ptr<token>> scan(const string &source_code)
     {
         this->reset();
         // add " " to protect overstep the size of source code

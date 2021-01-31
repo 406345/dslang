@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 
 #include "stdio.h"
 #include "statement.hpp"
@@ -6,7 +6,7 @@
 
 using namespace std;
 
-class statement_template : statement
+class statement_template : public statement
 {
 private:
     /* data */

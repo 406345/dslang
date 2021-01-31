@@ -1,10 +1,8 @@
 
 # DEMO
-    a=111abc
-    bbbb111
-
-
-    t = "asdfjlsjdlfsdf"
+fun thisisafunc(a,b,c,d,e,f)
+    var t = a+b*c-e*f+(a+b/e);
+end
 fun fibonacci(count)
     if     count
      <= #DEMO
@@ -18,7 +16,11 @@ fun fibonacci(count)
           
               2);
 end
+    a=111abc
+    bbbb111
 
+
+    t = "asdfjlsjdlfsdf"
 fun add(x, y)
     return x+y
 end

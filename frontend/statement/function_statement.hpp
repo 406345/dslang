@@ -13,7 +13,7 @@ using namespace std;
     [BODY]
     end
 */
-class function_statement : statement
+class function_statement : public statement
 {
 private:
     /* data */

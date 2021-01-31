@@ -6,7 +6,7 @@
 
 using namespace std;
 
-class binary_statement : statement
+class binary_statement : public statement
 {
 private:
     /* data */

@@ -6,7 +6,7 @@
 
 using namespace std;
 
-vector<token> scan(const string &source)
+vector<shared_ptr<token>> scan(const string &source)
 {
     scanner scanner;
     auto ret = scanner.scan(source);
@@ -14,7 +14,7 @@ vector<token> scan(const string &source)
 
     for (auto r : ret)
     {
-        printf("[%s] is %s @ %d:%d\n", r.symbol.data(), TOKEN_TYPE_NAME[r.type].data(), r.line, r.position);
+        printf("[%s] is %s @ %d:%d\n", r->symbol.data(), TOKEN_TYPE_NAME[r->type].data(), r->line, r->position);
     }
 
     return ret;

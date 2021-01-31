@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 
 #include "stdio.h"
 #include "statement.hpp"
@@ -6,7 +6,7 @@
 
 using namespace std;
 
-class declaration_statement : statement
+class declaration_statement : public statement
 {
 private:
     /* data */
@@ -14,12 +14,13 @@ public:
     declaration_statement(/* args */);
     ~declaration_statement();
 
-    shared_ptr<statement> identity;
+    string identity;
     shared_ptr<statement> value;
 };
 
 declaration_statement::declaration_statement(/* args */)
 {
+    this->type = STATEMENT_TYPE_DECLARATION;
 }
 
 declaration_statement::~declaration_statement()

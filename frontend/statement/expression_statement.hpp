@@ -2,7 +2,7 @@
 
 #include "statement.hpp"
 
-class expression_statement : statement
+class expression_statement : public  statement
 {
 private:
     /* data */
