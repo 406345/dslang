@@ -1,6 +1,7 @@
 #pragma once
 
 #include "string"
+#include "lexer_consts.hpp"
 
 using namespace std;
 

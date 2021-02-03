@@ -3,9 +3,13 @@ var hex = 0xFFAD123
 var dec = 1209381412414
 var binary = 0b11f
 
+# DEMO
+fun thisisafunc(a,b,c,d,e,f)
+    var t = a+b*c-e*f+(a+b/e);
+end
 fun fibonacci(count)
     if     count
-     <=
+     <= #DEMO
         2      return 
         1;
         
@@ -16,15 +20,25 @@ fun fibonacci(count)
           
               2);
 end
+    a=111abc
+    bbbb111
+
+
+    t = "asdfjlsjdlfsdf"
+fun add(x, y)
+    return x+y
+end
 
 fun 
 
 main()
+    t=0
+    for x in 100
+        t+=add(x,t)
+    end
     fibonacci(
         
         10 
-    
-    
     
        )
 end
