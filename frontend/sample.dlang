@@ -1,3 +1,7 @@
+var float = 111.20000
+var hex = 0xFFAD123
+var dec = 1209381412414
+var binary = 0b11f
 
 fun fibonacci(count)
     if     count

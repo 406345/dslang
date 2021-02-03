@@ -13,6 +13,9 @@ private:
     {
         SCAN_STATE_NONE = 1,
         SCAN_STATE_NUMBER,
+        SCAN_STATE_NUMBER_FLOAT,
+        SCAN_STATE_NUMBER_HEX,
+        SCAN_STATE_NUMBER_BIN,
         SCAN_STATE_WORD,
         SCAN_STATE_OPERATE,
         SCAN_STATE_STRING,
@@ -92,13 +95,30 @@ public:
             break;
             case SCAN_STATE_NUMBER:
             {
-                if (is_char_number(cur_chr) || cur_chr == '.')
+                if (is_char_number(cur_chr))
                 {
                     ++index;
                     ++pos;
                 }
-                else
-                {
+                else if(cur_chr == '.'){
+                    ++index;
+                    ++pos;
+                    state = SCAN_STATE_NUMBER_FLOAT;
+                    continue;
+                }
+                else if( cur_chr == 'x'){
+                    ++index;
+                    ++pos;
+                    state = SCAN_STATE_NUMBER_HEX;
+                    continue;
+                }
+                else if( cur_chr == 'b'){
+                    ++index;
+                    ++pos;
+                    state = SCAN_STATE_NUMBER_BIN;
+                    continue;
+                }
+                else {
                     token t;
                     t.symbol = string(source_code.data() + word_start, index - word_start);
                     t.line = line;
@@ -108,8 +128,72 @@ public:
 
                     state = SCAN_STATE_NONE;
                 }
+                // if (is_char_number(cur_chr) || cur_chr == '.' || cur_chr == 'x' || cur_chr == 'f')
+                // {
+                //     ++index;
+                //     ++pos;
+                // }
+                // else
+                // {
+                //     token t;
+                //     t.symbol = string(source_code.data() + word_start, index - word_start);
+                //     t.line = line;
+                //     t.position = pos - index + word_start;
+                //     t.type = TOKEN_TYPE::NUMBER;
+                //     ret.push_back(std::move(t));
+
+                //     state = SCAN_STATE_NONE;
+                // }
             }
             break;
+            case SCAN_STATE_NUMBER_FLOAT:{
+                if( is_char_number(cur_chr)){
+                    ++index;
+                    ++pos;
+                }
+                else{
+                    token t;
+                    t.symbol = string(source_code.data() + word_start, index - word_start);
+                    t.line = line;
+                    t.position = pos - index + word_start;
+                    t.type = TOKEN_TYPE::NUMBER_FLOAT;
+                    ret.push_back(std::move(t));
+
+                    state = SCAN_STATE_NONE;
+                }
+            }break;
+            case SCAN_STATE_NUMBER_HEX:{
+                if( is_char_number(cur_chr) || (cur_chr >= 'A' && cur_chr <= 'F')){
+                    ++index;
+                    ++pos;
+                }
+                else{
+                    token t;
+                    t.symbol = string(source_code.data() + word_start, index - word_start);
+                    t.line = line;
+                    t.position = pos - index + word_start;
+                    t.type = TOKEN_TYPE::NUMBER_HEX;
+                    ret.push_back(std::move(t));
+
+                    state = SCAN_STATE_NONE;
+                }
+            }break;
+            case SCAN_STATE_NUMBER_BIN:{
+                if( cur_chr == '0' || cur_chr == '1'){
+                    ++index;
+                    ++pos;
+                }
+                else{
+                    token t;
+                    t.symbol = string(source_code.data() + word_start, index - word_start);
+                    t.line = line;
+                    t.position = pos - index + word_start;
+                    t.type = TOKEN_TYPE::NUMBER_BIN;
+                    ret.push_back(std::move(t));
+
+                    state = SCAN_STATE_NONE;
+                }
+            }break;
             case SCAN_STATE_WORD:
             {
                 if (is_char_alphabet(cur_chr))
