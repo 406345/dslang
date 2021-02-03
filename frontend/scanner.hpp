@@ -125,6 +125,12 @@ private:
                     state = SCAN_STATE_WORD;
                     continue;
                 }
+                else if (is_char_number(cur_chr))
+                {
+                    word_start = index;
+                    state = SCAN_STATE_NUMBER_BIN;
+                    continue;
+                }
                 else if (is_char_symbol(cur_chr))
                 {
                     word_start = index;
@@ -132,8 +138,7 @@ private:
                     continue;
                 }
                 else
-                {
-
+                { 
                     auto t = make_shared<token>();
                     t->symbol = string(this->source.data() + index, 1);
                     t->line = line;
@@ -151,25 +156,27 @@ private:
                     this->next();
                     continue;
                 }
-                else if(cur_chr == '.'){
-                    ++index;
-                    ++pos;
+                else if (cur_chr == '.')
+                {
+                    this->next();
+
                     state = SCAN_STATE_NUMBER_FLOAT;
                     continue;
                 }
-                else if( cur_chr == 'x'){
-                    ++index;
-                    ++pos;
+                else if (cur_chr == 'x')
+                {
+                    this->next();
                     state = SCAN_STATE_NUMBER_HEX;
                     continue;
                 }
-                else if( cur_chr == 'b'){
-                    ++index;
-                    ++pos;
+                else if (cur_chr == 'b')
+                {
+                    this->next();
                     state = SCAN_STATE_NUMBER_BIN;
                     continue;
                 }
-                else {
+                else
+                {
                     shared_ptr<token> t;
                     t->symbol = string(this->source.data() + word_start, index - word_start);
                     t->line = line;
@@ -179,28 +186,11 @@ private:
 
                     state = SCAN_STATE_NONE;
                 }
-                // if (is_char_number(cur_chr) || cur_chr == '.' || cur_chr == 'x' || cur_chr == 'f')
-                // {
-                //     ++index;
-                //     ++pos;
-                // }
-                // else
-                // {
-                //     token t;
-                //     t.symbol = string(source_code.data() + word_start, index - word_start);
-                //     t.line = line;
-                //     t.position = pos - index + word_start;
-                //     t.type = TOKEN_TYPE::NUMBER;
-                //     ret.push_back(std::move(t));
-
-                //     state = SCAN_STATE_NONE;
-                // }
             }
             break;
             case SCAN_STATE_NUMBER_FLOAT:{
                 if( is_char_number(cur_chr)){
-                    ++index;
-                    ++pos;
+                   this->next();
                 }
                 else{
                     shared_ptr<token> t;
@@ -215,8 +205,7 @@ private:
             }break;
             case SCAN_STATE_NUMBER_HEX:{
                 if( is_char_number(cur_chr) || (cur_chr >= 'A' && cur_chr <= 'F')){
-                    ++index;
-                    ++pos;
+                  this->next();
                 }
                 else{
                     shared_ptr<token> t;
@@ -231,8 +220,7 @@ private:
             }break;
             case SCAN_STATE_NUMBER_BIN:{
                 if( cur_chr == '0' || cur_chr == '1'){
-                    ++index;
-                    ++pos;
+                    this->next();
                 }
                 else{
                     shared_ptr<token> t;
